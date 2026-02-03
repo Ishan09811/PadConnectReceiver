@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GamepadEvent(
     val type: String,
-    val key: String? = null,
-    val axis: String? = null,
-    val value: Float? = null,
+    val key: String,
+    val value: Float = 1f,
     val timestamp: Long
 )
+

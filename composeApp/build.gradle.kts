@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -29,6 +30,8 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation("net.java.dev.jna:jna:5.14.0")
+            implementation("net.java.dev.jna:jna-platform:5.14.0")
         }
     }
 }
@@ -42,6 +45,16 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "io.github.padconnect.receiver"
             packageVersion = "1.0.0"
+
+            windows {
+                console = true
+            }
+        }
+
+        buildTypes.release {
+            proguard {
+                isEnabled = false
+            }
         }
     }
 }
