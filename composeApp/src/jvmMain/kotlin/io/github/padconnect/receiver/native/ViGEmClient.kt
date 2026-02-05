@@ -58,7 +58,7 @@ fun loadLibrary(): ViGEmClient? {
             "ViGEmClient",
             ViGEmClient::class.java
         )
-    } catch (e: Exception) {
+    } catch (e: UnsatisfiedLinkError) {
        if (retries < 4) {
            retries += 1
            e.printStackTrace()
