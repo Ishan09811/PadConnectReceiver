@@ -61,8 +61,7 @@ fun loadLibrary(): ViGEmClient? {
     } catch (e: UnsatisfiedLinkError) {
        if (retries < 4) {
            retries += 1
-           e.printStackTrace()
            loadLibrary()
-       } else { null }
+       } else { e.printStackTrace(); null }
     }
 }

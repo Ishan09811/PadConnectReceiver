@@ -1,13 +1,12 @@
 
 package io.github.padconnect.receiver.data
 
-import kotlinx.serialization.Serializable
-
-@Serializable
-data class GamepadEvent(
-    val type: String,
-    val key: String,
-    val value: Float = 1f,
-    val timestamp: Long
+data class GamepadState(
+    var buttons: Int = 0,
+    var lx: Short = 0,
+    var ly: Short = 0,
+    var rx: Short = 0,
+    var ry: Short = 0,
+    var lt: Byte = 0,
+    var rt: Byte = 0
 )
-

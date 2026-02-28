@@ -1,9 +1,9 @@
 
 package io.github.padconnect.receiver.input
 
-import io.github.padconnect.receiver.data.GamepadEvent
+import io.github.padconnect.receiver.data.GamepadState
 
 interface InputExecutor {
-    fun submit(event: GamepadEvent)
+    fun submit(state: GamepadState)
     fun shutdown()
 }

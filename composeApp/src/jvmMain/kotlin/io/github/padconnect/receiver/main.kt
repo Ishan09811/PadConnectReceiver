@@ -19,9 +19,9 @@ fun main() = application {
 }
 
 fun initNativeLibrary() {
-    NativeLibrary.addSearchPath("ViGEmClient", System.getenv("APPDATA") + "\\io.github.padconnect.receiver")
+    NativeLibrary.addSearchPath("ViGEmClient", System.getenv("APPDATA") + "\\PadConnectReceiver")
     val dllBytes = runBlocking { Res.readBytes("files/ViGEmClient.dll") }
-    val targetDir = File(System.getenv("APPDATA"), "io.github.padconnect.receiver")
+    val targetDir = File(System.getenv("APPDATA"), "PadConnectReceiver")
     targetDir.mkdirs()
     val dllFile = File(targetDir, "ViGEmClient.dll")
     if (!dllFile.exists()) {

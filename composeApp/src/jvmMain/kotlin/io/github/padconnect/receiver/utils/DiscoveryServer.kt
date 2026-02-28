@@ -11,10 +11,11 @@ class DiscoveryServer(
 
     fun start() {
         Thread {
-            println("Discovery server listening on 8083")
+            println("Discovery server listening on $port")
 
             val buffer = ByteArray(256)
 
+            // TODO: stop once responded to free up threads
             while (true) {
                 val packet = DatagramPacket(buffer, buffer.size)
                 socket.receive(packet)
@@ -22,7 +23,7 @@ class DiscoveryServer(
                 val msg = String(packet.data, 0, packet.length)
 
                 if (msg == "PADCONNECT_DISCOVER") {
-                    val response = "PADCONNECT_HERE:$port".toByteArray()
+                    val response = "PADCONNECT_HERE:8082".toByteArray()
 
                     val responsePacket = DatagramPacket(
                         response,
@@ -35,6 +36,10 @@ class DiscoveryServer(
                     println("Responded to ${packet.address.hostAddress}")
                 }
             }
-        }.start()
+        }.apply {
+            name = "discovery-server"
+            start()
+            println("Started $this")
+        }
     }
 }

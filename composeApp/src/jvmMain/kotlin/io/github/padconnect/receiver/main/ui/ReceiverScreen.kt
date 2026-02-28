@@ -9,9 +9,9 @@ import io.github.padconnect.receiver.viewmodel.ReceiverViewModel
 
 @Composable
 fun ReceiverScreen(viewModel: ReceiverViewModel) {
-    val lastEvent by viewModel.lastEvent.collectAsState()
+    val lastState by viewModel.lastState.collectAsState()
 
     Text(
-        text = lastEvent?.toString() ?: "Waiting for input..."
+        text = lastState?.toString() ?: "Waiting for input..."
     )
 }

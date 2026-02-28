@@ -43,7 +43,7 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "io.github.padconnect.receiver"
+            packageName = "PadConnectReceiver"
             packageVersion = "1.0.0"
 
             windows {

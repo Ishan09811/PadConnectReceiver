@@ -1,7 +1,9 @@
 
 package io.github.padconnect.receiver.input
 
+/*import io.github.padconnect.receiver.data.EventType
 import io.github.padconnect.receiver.data.GamepadEvent
+import io.github.padconnect.receiver.data.GamepadKey
 import java.awt.Robot
 import java.awt.event.KeyEvent
 import java.util.concurrent.LinkedBlockingQueue
@@ -14,14 +16,14 @@ class KBInputExecutor : InputExecutor {
     private val robot = Robot().apply { autoDelay = 0 }
 
     private val keyMap = mapOf(
-        "A" to KeyEvent.VK_SPACE,
-        "B" to KeyEvent.VK_CONTROL,
-        "X" to KeyEvent.VK_X,
-        "Y" to KeyEvent.VK_Y,
-        "LB" to KeyEvent.VK_Q,
-        "RB" to KeyEvent.VK_E,
-        "START" to KeyEvent.VK_ENTER,
-        "SELECT" to KeyEvent.VK_SHIFT
+        GamepadKey.A to KeyEvent.VK_SPACE,
+        GamepadKey.B to KeyEvent.VK_CONTROL,
+        GamepadKey.X to KeyEvent.VK_X,
+        GamepadKey.Y to KeyEvent.VK_Y,
+        GamepadKey.LB to KeyEvent.VK_Q,
+        GamepadKey.RB to KeyEvent.VK_E,
+        GamepadKey.START to KeyEvent.VK_ENTER,
+        GamepadKey.SELECT to KeyEvent.VK_SHIFT
     )
 
     private var x = 0f
@@ -48,20 +50,23 @@ class KBInputExecutor : InputExecutor {
 
     private fun process(event: GamepadEvent) {
         when (event.type) {
-            "button_down" ->
+            EventType.BUTTON_DOWN ->
                 keyMap[event.key]?.let { press(it) }
 
-            "button_up" ->
+            EventType.BUTTON_UP ->
                 keyMap[event.key]?.let { release(it) }
 
-            "axis" -> handleAxis(event)
+            EventType.AXIS -> handleAxis(event)
         }
     }
 
     private fun handleAxis(event: GamepadEvent) {
         when (event.key) {
-            "DPAD_X" -> x = clamp(event.value)
-            "DPAD_Y" -> y = clamp(event.value)
+            GamepadKey.L_ANALOG_STICK -> {
+                x = clamp(event.value.first)
+                y = clamp(event.value.second)
+            }
+            else -> {}
         }
 
         set(KeyEvent.VK_A, x < 0)
@@ -88,4 +93,4 @@ class KBInputExecutor : InputExecutor {
             v < -0.5f -> -1f
             else -> 0f
         }
-}
+}*/
