@@ -25,6 +25,12 @@ class ReceiverViewModel : ViewModel() {
     init {
         receiver.start()
         discovery.start()
+        executor.onRumble = { large: Int, small: Int ->
+            receiver.onRumble(large, small)
+        }
+        discovery.onResponded = { features ->
+            receiver.setEnabledFeatures(features)
+        }
     }
 
     fun onEvent(state: GamepadState) {

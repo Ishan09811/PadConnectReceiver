@@ -18,9 +18,15 @@ class UdpReceiver(
         bind(InetSocketAddress(port))
     }
 
-    fun start(sendLatencyStats: Boolean = true) {
+    private var senderAddress: InetAddress? = null
+    private var senderPort: Int? = null
+
+    private var isLatencyFeatureEnabled = false
+    private var isRumbleFeatureEnabled = false
+
+    fun start() {
         Thread {
-            val buffer = ByteArray(20)
+            val buffer = ByteArray(21)
             val packet = DatagramPacket(buffer, buffer.size)
 
             while (!socket.isClosed) {
@@ -29,17 +35,22 @@ class UdpReceiver(
                 val bb = ByteBuffer.wrap(packet.data, 0, packet.length)
                     .order(ByteOrder.LITTLE_ENDIAN)
 
-                val state = GamepadState(
-                    buttons = bb.short.toInt(),
-                    lx = bb.short,
-                    ly = bb.short,
-                    rx = bb.short,
-                    ry = bb.short,
-                    lt = bb.get(),
-                    rt = bb.get()
-                )
-                onEvent(state)
-                if (sendLatencyStats) sendLatency(bb.long, packet.address, packet.port)
+                val type = bb.get().toInt()
+
+                if (type == 0) {
+                    val state = GamepadState(
+                        buttons = bb.short.toInt(),
+                        lx = bb.short,
+                        ly = bb.short,
+                        rx = bb.short,
+                        ry = bb.short,
+                        lt = bb.get(),
+                        rt = bb.get()
+                    )
+                    onEvent(state)
+                    if (senderAddress == null) senderAddress = packet.address; senderPort = packet.port
+                    if (isLatencyFeatureEnabled) senderAddress?.let { sendLatency(bb.long) }
+                }
             }
         }.apply {
             name = "udp-io"
@@ -49,21 +60,38 @@ class UdpReceiver(
         }
     }
 
-    fun sendLatency(sentTime: Long, address: InetAddress, port: Int) {
-        val responseBuffer = ByteBuffer.allocate(16)
+    fun onRumble(large: Int, small: Int) {
+        if (senderAddress == null || !isRumbleFeatureEnabled) return
+        val buf = ByteArray(3)
+        buf[0] = 1 // type = rumble
+        buf[1] = large.toByte()
+        buf[2] = small.toByte()
+
+        val packet = DatagramPacket(buf, buf.size, senderAddress, senderPort!!)
+        socket.send(packet)
+    }
+
+    fun sendLatency(sentTime: Long) {
+        val responseBuffer = ByteBuffer.allocate(17)
             .order(ByteOrder.LITTLE_ENDIAN)
 
+        responseBuffer.put(2) // type = latency
         responseBuffer.putLong(sentTime)
         responseBuffer.putLong(System.nanoTime())
 
         val responsePacket = DatagramPacket(
             responseBuffer.array(),
-            16,
-            address,
-            port
+            17,
+            senderAddress,
+            senderPort!!
         )
 
         socket.send(responsePacket)
+    }
+
+    fun setEnabledFeatures(features: Int) {
+        isRumbleFeatureEnabled = (features and FEATURE_RUMBLE) != 0
+        isLatencyFeatureEnabled = (features and FEATURE_LATENCY) != 0
     }
 
     fun stop() {

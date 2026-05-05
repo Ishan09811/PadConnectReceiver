@@ -1,13 +1,24 @@
 package io.github.padconnect.receiver.utils
 
+import io.github.padconnect.receiver.dialogs.AlertDialogQueue
+import io.github.padconnect.receiver.dialogs.AppDialog
 import java.net.DatagramPacket
 import java.net.DatagramSocket
+
+const val MIN_SUPPORTED_VERSION = 2
+const val FEATURE_RUMBLE = 1 shl 0
+const val FEATURE_LATENCY = 1 shl 1
 
 class DiscoveryServer(
     private val port: Int
 ) {
 
     private val socket = DatagramSocket(port)
+
+    private val SERVER_VERSION = 2
+    private val SERVER_FEATURES = FEATURE_RUMBLE or FEATURE_LATENCY
+
+    var onResponded: ((features: Int) -> Unit)? = null
 
     fun start() {
         Thread {
@@ -22,8 +33,25 @@ class DiscoveryServer(
 
                 val msg = String(packet.data, 0, packet.length)
 
-                if (msg == "PADCONNECT_DISCOVER") {
-                    val response = "PADCONNECT_HERE:8082".toByteArray()
+                if (msg.startsWith("PADCONNECT_DISCOVER")) {
+                    val parts = msg.split(":")
+
+                    val clientVersion = parts.getOrNull(1)?.toIntOrNull() ?: 1
+                    val clientFeatures = parts.getOrNull(2)?.toIntOrNull() ?: 1
+
+                    if (clientVersion < MIN_SUPPORTED_VERSION) {
+                        AlertDialogQueue.show(
+                            AppDialog.Message(
+                                title = "App Update Required",
+                                message = "Your PadConnect app is outdated.\n\nPlease update the app to connect to this receiver."
+                            )
+                        )
+                    }
+
+                    val agreedVersion = minOf(clientVersion, SERVER_VERSION)
+                    val agreedFeatures = clientFeatures and SERVER_FEATURES
+
+                    val response = "PADCONNECT_HERE:8082:$agreedVersion:$agreedFeatures".toByteArray()
 
                     val responsePacket = DatagramPacket(
                         response,
@@ -33,7 +61,9 @@ class DiscoveryServer(
                     )
 
                     socket.send(responsePacket)
-                    println("Responded to ${packet.address.hostAddress}")
+                    onResponded?.invoke(agreedFeatures)
+                    println("Responded to ${packet.address.hostAddress} " +
+                            "v=$agreedVersion features=$agreedFeatures")
                 }
             }
         }.apply {
