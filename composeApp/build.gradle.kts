@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -42,7 +41,8 @@ compose.desktop {
         mainClass = "io.github.padconnect.receiver.MainKt"
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("src/jvmMain/resources"))
+            targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.AppImage)
             packageName = "PadConnectReceiver"
             packageVersion = "1.0.0"
 

@@ -2,7 +2,9 @@
 package io.github.padconnect.receiver.viewmodel
 
 import androidx.lifecycle.ViewModel
+import io.github.padconnect.receiver.SystemInfo
 import io.github.padconnect.receiver.data.GamepadState
+import io.github.padconnect.receiver.input.LinuxInputExecutor
 import io.github.padconnect.receiver.input.XInputExecutor
 import io.github.padconnect.receiver.utils.DiscoveryServer
 import io.github.padconnect.receiver.utils.UdpReceiver
@@ -13,7 +15,13 @@ class ReceiverViewModel : ViewModel() {
     private val _lastState = MutableStateFlow<GamepadState?>(null)
     val lastState: StateFlow<GamepadState?> = _lastState
 
-    private val executor = XInputExecutor()
+    private val executor by lazy {
+        if (SystemInfo.OS.contains("win")) {
+            XInputExecutor()
+        } else {
+            LinuxInputExecutor()
+        }
+    }
 
     private val receiver = UdpReceiver(8082) {
         executor.submit(it)
@@ -25,8 +33,13 @@ class ReceiverViewModel : ViewModel() {
     init {
         receiver.start()
         discovery.start()
-        executor.onRumble = { large: Int, small: Int ->
-            receiver.onRumble(large, small)
+        when (executor) {
+            is XInputExecutor -> {
+                (executor as XInputExecutor).onRumble = { large: Int, small: Int ->
+                    receiver.onRumble(large, small)
+                }
+            }
+            else -> println("${executor.javaClass.name}: Rumble is not supported yet")
         }
         discovery.onResponded = { features ->
             receiver.setEnabledFeatures(features)

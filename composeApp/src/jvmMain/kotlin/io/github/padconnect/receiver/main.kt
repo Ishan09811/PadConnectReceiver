@@ -12,17 +12,6 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         title = "PadConnectReceiver",
     ) {
-        initNativeLibrary()
         App()
-    }
-}
-
-fun initNativeLibrary() {
-    val dllBytes = runBlocking { Res.readBytes("files/ViGEmClient.dll") }
-    val targetDir = File(System.getenv("APPDATA"), "PadConnectReceiver")
-    targetDir.mkdirs()
-    val dllFile = File(targetDir, "ViGEmClient.dll")
-    if (!dllFile.exists()) {
-        dllFile.writeBytes(dllBytes)
     }
 }

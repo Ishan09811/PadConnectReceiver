@@ -7,8 +7,6 @@ import com.sun.jna.Native
 import com.sun.jna.Pointer
 import com.sun.jna.Structure
 
-val NATIVE_LIB_PATH = "${System.getenv("APPDATA")}\\PadConnectReceiver\\ViGEmClient.dll"
-
 @Structure.FieldOrder(
     "wButtons",
     "bLeftTrigger",
@@ -98,6 +96,6 @@ interface ViGEmClient : Library {
     ): Int
 
     companion object {
-        var INSTANCE: ViGEmClient = Native.load(NATIVE_LIB_PATH, ViGEmClient::class.java)
+        var INSTANCE: ViGEmClient = Native.load("ViGEmClient", ViGEmClient::class.java)
     }
 }
