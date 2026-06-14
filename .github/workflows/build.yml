@@ -3,12 +3,27 @@ name: Build
 on:
   pull_request:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   workflow_dispatch:
 
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows
+            task: packageReleaseMsi
+            artifact: windows-msi
+            path: ./composeApp/build/compose/binaries/main-release/msi/*.msi
+
+          - os: ubuntu-latest
+            name: linux
+            task: packageReleaseAppImage
+            artifact: linux-appimage
+            path: ./composeApp/build/compose/binaries/main-release/app/*.AppImage
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repo
@@ -20,13 +35,19 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Install Linux dependencies
+        if: matrix.name == 'linux'
+        run: |
+          sudo apt update
+          sudo apt install -y fakeroot fuse libfuse2
+
       - name: Build
         run: |
           chmod +x gradlew
-          ./gradlew packageReleaseMsi
+          ./gradlew ${{ matrix.task }}
 
-      - name: Upload MSI artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: windows-msi
-          path: ./composeApp/build/compose/binaries/main-release/msi/*.msi
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.path }}
