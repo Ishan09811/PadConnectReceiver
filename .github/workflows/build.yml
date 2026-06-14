@@ -21,7 +21,7 @@ jobs:
             name: linux
             task: packageReleaseAppImage
             artifact: linux-appimage
-            path: ./composeApp/build/compose/binaries/main-release/app/*.AppImage
+            path: ./PadConnectReceiver-x86_64.AppImage
 
     runs-on: ${{ matrix.os }}
 
@@ -35,16 +35,34 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Install Linux dependencies
-        if: matrix.name == 'linux'
-        run: |
-          sudo apt update
-          sudo apt install -y fakeroot fuse libfuse2
-
       - name: Build
         run: |
           chmod +x gradlew
           ./gradlew ${{ matrix.task }}
+          
+
+      - name: Bundle AppImage
+        if: matrix.name == 'linux'
+        run: |
+          APP_DIR="./composeApp/build/compose/binaries/main-release/app/PadConnectReceiver"
+          
+          ln -s ./bin/PadConnectReceiver "$APP_DIR/AppRun"
+          
+          cat <<EOF > "$APP_DIR/padconnectreceiver.desktop"
+          [Desktop Entry]
+          Type=Application
+          Name=PadConnectReceiver
+          Exec=AppRun
+          Icon=padconnectreceiver
+          Categories=Utility;
+          EOF
+          
+          cp "$APP_DIR/lib/PadConnectReceiver.png" "$APP_DIR/padconnectreceiver.png" || touch "$APP_DIR/padconnectreceiver.png"
+          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          
+          ./appimagetool-x86_64.AppImage "$APP_DIR" PadConnectReceiver-x86_64.AppImage
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

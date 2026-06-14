@@ -42,7 +42,7 @@ compose.desktop {
 
         nativeDistributions {
             appResourcesRootDir.set(project.layout.projectDirectory.dir("src/jvmMain/resources"))
-            targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.AppImage)
+            targetFormats(TargetFormat.Msi, TargetFormat.Deb, TargetFormat.AppImage, TargetFormat.Rpm)
             packageName = "PadConnectReceiver"
             packageVersion = "1.0.0"
 
