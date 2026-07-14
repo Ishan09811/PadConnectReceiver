@@ -18,10 +18,14 @@ class UdpReceiver(
         bind(InetSocketAddress(port))
     }
 
+    @Volatile
     private var senderAddress: InetAddress? = null
+    @Volatile
     private var senderPort: Int? = null
 
+    @Volatile
     private var isLatencyFeatureEnabled = false
+    @Volatile
     private var isRumbleFeatureEnabled = false
 
     fun start() {
@@ -48,7 +52,10 @@ class UdpReceiver(
                         rt = bb.get()
                     )
                     onEvent(state)
-                    if (senderAddress == null) senderAddress = packet.address; senderPort = packet.port
+                    if (senderAddress != packet.address || senderPort != packet.port) {
+                        senderAddress = packet.address
+                        senderPort = packet.port
+                    }
                     if (isLatencyFeatureEnabled) senderAddress?.let { sendLatency(bb.long) }
                 }
             }
