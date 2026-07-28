@@ -15,6 +15,8 @@ class ReceiverViewModel : ViewModel() {
     private val _lastState = MutableStateFlow<GamepadState?>(null)
     val lastState: StateFlow<GamepadState?> = _lastState
 
+    var lastUiUpdate = 0L
+
     private val executor by lazy {
         if (SystemInfo.OS.contains("win")) {
             XInputExecutor()
@@ -23,9 +25,13 @@ class ReceiverViewModel : ViewModel() {
         }
     }
 
-    private val receiver = UdpReceiver(8082) {
-        executor.submit(it)
-        onEvent(it)
+    private val receiver = UdpReceiver(8082) { buttons, lx, ly, rx, ry, lt, rt ->
+        executor.submit(buttons, lx, ly, rx, ry, lt, rt)
+        val now = System.currentTimeMillis()
+        if (now - lastUiUpdate > 16) {
+            lastUiUpdate = now
+            onEvent(buttons, lx, ly, rx, ry, lt, rt)
+        }
     }
 
     val discovery = DiscoveryServer(port = 8083)
@@ -46,8 +52,8 @@ class ReceiverViewModel : ViewModel() {
         }
     }
 
-    fun onEvent(state: GamepadState) {
-        _lastState.value = state
+    fun onEvent(buttons: Int, lx: Short, ly: Short, rx: Short, ry: Short, lt: Byte, rt: Byte) {
+        _lastState.value = GamepadState(buttons, lx, ly, rx, ry, lt, rt)
     }
 
     override fun onCleared() {

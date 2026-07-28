@@ -1,7 +1,6 @@
 
 package io.github.padconnect.receiver.utils
 
-import io.github.padconnect.receiver.data.GamepadState
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
@@ -11,7 +10,7 @@ import java.nio.ByteOrder
 
 class UdpReceiver(
     port: Int,
-    private val onEvent: (GamepadState) -> Unit
+    private val onEvent: (Int, Short, Short, Short, Short, Byte, Byte) -> Unit
 ) {
     private val socket = DatagramSocket(null).apply {
         reuseAddress = true
@@ -35,23 +34,19 @@ class UdpReceiver(
 
             while (!socket.isClosed) {
                 socket.receive(packet)
-
-                val bb = ByteBuffer.wrap(packet.data, 0, packet.length)
-                    .order(ByteOrder.LITTLE_ENDIAN)
-
+                val bb = ByteBuffer.wrap(packet.data, 0, packet.length).order(ByteOrder.LITTLE_ENDIAN)
                 val type = bb.get().toInt()
 
                 if (type == 0) {
-                    val state = GamepadState(
-                        buttons = bb.short.toInt(),
-                        lx = bb.short,
-                        ly = bb.short,
-                        rx = bb.short,
-                        ry = bb.short,
-                        lt = bb.get(),
-                        rt = bb.get()
+                    onEvent(
+                        bb.short.toInt(), // buttons
+                        bb.short,         // lx
+                        bb.short,         // ly
+                        bb.short,         // rx
+                        bb.short,         // ry
+                        bb.get(),         // lt
+                        bb.get()          // rt
                     )
-                    onEvent(state)
                     if (senderAddress != packet.address || senderPort != packet.port) {
                         senderAddress = packet.address
                         senderPort = packet.port

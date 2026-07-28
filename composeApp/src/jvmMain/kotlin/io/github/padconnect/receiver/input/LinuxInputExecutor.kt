@@ -6,9 +6,7 @@ import io.github.padconnect.receiver.native.UInputDevice
 import kotlin.concurrent.thread
 
 class LinuxInputExecutor : InputExecutor {
-
-    @Volatile
-    private var latestState = GamepadState()
+    private val latestState = GamepadState()
 
     private val uinput = UInputDevice()
 
@@ -37,8 +35,16 @@ class LinuxInputExecutor : InputExecutor {
         }
     }
 
-    override fun submit(state: GamepadState) {
-        latestState = state
+    override fun submit(buttons: Int, lx: Short, ly: Short, rx: Short, ry: Short, lt: Byte, rt: Byte) {
+        latestState.apply {
+            this.buttons = buttons
+            this.lx = lx
+            this.ly = ly
+            this.rx = rx
+            this.ry = ry
+            this.lt = lt
+            this.rt = rt
+        }
     }
 
     override fun shutdown() {
