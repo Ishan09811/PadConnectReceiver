@@ -1,7 +1,6 @@
 
 package io.github.padconnect.receiver.input
 
-import io.github.padconnect.receiver.data.GamepadState
 import io.github.padconnect.receiver.dialogs.AlertDialogQueue
 import io.github.padconnect.receiver.dialogs.AppDialog
 import java.lang.foreign.Arena
@@ -13,19 +12,15 @@ import java.lang.foreign.SymbolLookup
 import java.lang.foreign.ValueLayout
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
-import kotlin.concurrent.thread
 
 class XInputExecutor : InputExecutor {
-    private val latestState = GamepadState()
-
     var onRumble: ((large: Int, small: Int) -> Unit)? = null
 
     private val arena = Arena.ofShared()
 
-    private val client: MemorySegment
-    private val target: MemorySegment
-    private val reportSegment: MemorySegment
-    private val thread: Thread
+    private val client: MemorySegment = vigem_alloc.invokeExact() as MemorySegment
+    private val target: MemorySegment = vigem_target_x360_alloc.invokeExact() as MemorySegment
+    private val reportSegment: MemorySegment = arena.allocate(XUSB_REPORT_LAYOUT)
 
     companion object {
         init {
@@ -91,9 +86,6 @@ class XInputExecutor : InputExecutor {
     }
 
     init {
-        client = vigem_alloc.invokeExact() as MemorySegment
-        target = vigem_target_x360_alloc.invokeExact() as MemorySegment
-        reportSegment = arena.allocate(XUSB_REPORT_LAYOUT)
 
         val connectRes = vigem_connect.invokeExact(client) as Int
         when (val result = VigemError.from(connectRes)) {
@@ -142,44 +134,21 @@ class XInputExecutor : InputExecutor {
         if (!notifyResult.isSuccess()) {
             println("Notification registration failed: $notifyResult")
         }
-
-        thread = thread(start = false, name = "xinput-executor", priority = Thread.MAX_PRIORITY) {
-            while (!Thread.interrupted()) {
-                val s = latestState
-
-                wButtonsVar.set(reportSegment, 0L, s.buttons.toShort())
-                bLeftTriggerVar.set(reportSegment, 0L, s.lt)
-                bRightTriggerVar.set(reportSegment, 0L, s.rt)
-                sThumbLXVar.set(reportSegment, 0L, dz(s.lx))
-                sThumbLYVar.set(reportSegment, 0L, dz(s.ly))
-                sThumbRXVar.set(reportSegment, 0L, dz(s.rx))
-                sThumbRYVar.set(reportSegment, 0L, dz(s.ry))
-
-                vigem_target_x360_update.invokeExact(client, target, reportSegment) as Int
-
-                try {
-                    Thread.sleep(2)
-                } catch (_: InterruptedException) {
-                    break
-                }
-            }
-        }.apply { start() }
     }
 
     override fun submit(buttons: Int, lx: Short, ly: Short, rx: Short, ry: Short, lt: Byte, rt: Byte) {
-        latestState.apply {
-            this.buttons = buttons
-            this.lx = lx
-            this.ly = ly
-            this.rx = rx
-            this.ry = ry
-            this.lt = lt
-            this.rt = rt
-        }
+        wButtonsVar.set(reportSegment, 0L, buttons.toShort())
+        bLeftTriggerVar.set(reportSegment, 0L, lt)
+        bRightTriggerVar.set(reportSegment, 0L, rt)
+        sThumbLXVar.set(reportSegment, 0L, dz(lx))
+        sThumbLYVar.set(reportSegment, 0L, dz(ly))
+        sThumbRXVar.set(reportSegment, 0L, dz(rx))
+        sThumbRYVar.set(reportSegment, 0L, dz(ry))
+
+        vigem_target_x360_update.invokeExact(client, target, reportSegment) as Int
     }
 
     override fun shutdown() {
-        thread.interrupt()
         try {
             vigem_target_remove.invokeExact(client, target)
             vigem_target_free.invokeExact(target)
