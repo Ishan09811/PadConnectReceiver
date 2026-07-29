@@ -1,27 +1,101 @@
-This is a Kotlin Multiplatform project targeting Desktop (JVM).
+# PadConnectReceiver
 
-* [/composeApp](./composeApp/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./composeApp/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./composeApp/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./composeApp/src/jvmMain/kotlin)
-    folder is the appropriate location.
+[![Discord](https://img.shields.io/discord/1496412688685858846?label=&logo=discord&logoColor=ffffff&color=5865F2&labelColor=404EED)](https://discord.gg/BrMAZbEyXs)
 
-### Build and Run Desktop (JVM) Application
+> **Desktop receiver for PadConnect** - turns UDP input from your phone into a real virtual gamepad
 
-To build and run the development version of the desktop app, use the run configuration from the run widget
-in your IDE’s toolbar or run it directly from the terminal:
-- on macOS/Linux
-  ```shell
-  ./gradlew :composeApp:run
-  ```
-- on Windows
-  ```shell
-  .\gradlew.bat :composeApp:run
-  ```
+PadConnectReceiver is the Desktop side companion to **[PadConnect](https://github.com/Ishan09811/PadConnect)**. It listens for low latency controller input streamed from the PadConnect Android app and exposes it to Desktop (and games) as a real virtual controller, using **ViGEm** on windows and native on linux.
+
+This is one half of a two-part project:
+
+- **[PadConnect](https://github.com/Ishan09811/PadConnect)** -> Android / client app (virtual controller UI)
+- **PadConnectReceiver** -> Desktop / receiver app (creates the virtual controller) *(this repo)*
 
 ---
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## How it works
+
+```
+[ Android Phone ] -- UDP --> [ PadConnectReceiver (Windows) ] --> [ ViGEm ] --> Game
+```
+
+1. **[PadConnect](https://github.com/Ishan09811/PadConnect) (Android)** renders a virtual controller, captures input, and streams it over UDP on the local WiFi network.
+2. **PadConnectReceiver (Desktop)** listens for those UDP packets, executes the controller states, which exposes a virtual Xbox 360 (DualShock4 coming soon) controller to the OS.
+
+Games see it as a *real* controller.
+
+---
+
+## Features
+
+- Low-latency **UDP** input receiving
+- **Xbox 360** virtual controller support (working) **DualShock4** support planned
+- Built with **Kotlin Multiplatform (KMP)**
+- Works over local WiFi, no internet required
+- Pairs with the [PadConnect](https://github.com/Ishan09811/PadConnect) Android app
+
+---
+
+## Requirements
+
+- Windows (10 / 11) / Linux
+- **ViGEmBus Driver** installed (only required for windows users)
+- JVM compatible environment (bundled with releases where applicable)
+- The [PadConnect](https://github.com/Ishan09811/PadConnect) Android app running on the same local WiFi network
+
+---
+
+## Getting Started
+
+### 1. Install ViGEm (only needed for windows users)
+
+Download and install **ViGEmBus** from the [official ViGEm GitHub release](https://github.com/ViGEm/ViGEmBus/releases), then **reboot**.
+
+### 2. Run PadConnectReceiver
+
+```
+PadConnectReceiver.exe (windows)
+PadConnectReceiver.AppImage (linux)
+```
+
+This starts listening for UDP input and creates a virtual controller.
+
+### 3. Connect from PadConnect (Android)
+
+- Install [PadConnect](https://github.com/Ishan09811/PadConnect) on your phone
+- Create a controller layout
+- start playing
+
+> **Version compatibility:** PadConnectReceiver and PadConnect releases are paired, check each release's notes for the minimum required companion version before pairing an older client/receiver combination.
+
+---
+
+## Supported Inputs
+
+- Buttons: A / B / X / Y
+- Shoulder buttons
+- Triggers
+- Analog Sticks
+
+## Notes
+
+- Works best on local WiFi
+- Firewall may need to allow the UDP port used for input streaming
+- ViGEm is only required for Windows
+
+---
+
+## Credits
+
+- **ViGEm** — Virtual Gamepad Emulation Framework for windows support
+- Kotlin & Kotlin Multiplatform teams
+
+---
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 ([GPL-3.0-only](LICENSE)).
+
+---
+
+> Built for low latency, simplicity, and fun.
