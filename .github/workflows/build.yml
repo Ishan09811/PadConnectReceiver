@@ -35,11 +35,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 22 
 
       - name: Build
         run: |
@@ -48,7 +48,7 @@ jobs:
           
 
       - name: Bundle AppImage
-        if: matrix.name == 'linux'
+        if: startsWith(matrix.name, 'linux')
         run: |
           APP_DIR="./composeApp/build/compose/binaries/main-release/app/PadConnectReceiver"
           
