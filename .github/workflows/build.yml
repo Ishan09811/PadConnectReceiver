@@ -99,8 +99,12 @@ jobs:
           
           ./"$TOOL" "$APP_DIR" "$OUTPUT"
 
+      - name: Stop Gradle Daemon
+        if: startsWith(matrix.name, 'windows')
+        run: ./gradlew --stop
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.path }}
