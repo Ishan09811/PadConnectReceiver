@@ -12,21 +12,27 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            name: windows
+            name: windows-x64
             task: packageReleaseMsi
-            artifact: windows-msi
+            artifact: PadConnectReceiver-windows-x86_64
+            path: ./composeApp/build/compose/binaries/main-release/msi/*.msi
+
+          - os: windows-11-arm
+            name: windows-arm64
+            task: packageReleaseMsi
+            artifact: PadConnectReceiver-windows-arm64
             path: ./composeApp/build/compose/binaries/main-release/msi/*.msi
 
           - os: ubuntu-latest
             name: linux-x64
             task: packageReleaseAppImage
-            artifact: linux-appimage-x64
+            artifact: PadConnectReceiver-linux-x86_64
             path: ./PadConnectReceiver-x86_64.AppImage
 
           - os: ubuntu-24.04-arm
             name: linux-arm64
             task: packageReleaseAppImage
-            artifact: linux-appimage-arm64
+            artifact: PadConnectReceiver-linux-arm64
             path: ./PadConnectReceiver-aarch64.AppImage
 
     runs-on: ${{ matrix.os }}
