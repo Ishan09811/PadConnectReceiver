@@ -45,8 +45,8 @@ jobs:
         uses: actions/cache@v5
         with:
           path: |
-            ${{ github.workspace }}/.gradle/caches
-            ${{ github.workspace }}/.gradle/wrapper
+            ~/.gradle/caches
+            ~/.gradle/wrapper
           key: ${{ runner.os }}-padconnectreceiver-${{ hashFiles(
            '**/*.gradle',
            '**/*.gradle.kts',
