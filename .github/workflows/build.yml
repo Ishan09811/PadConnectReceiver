@@ -18,10 +18,16 @@ jobs:
             path: ./composeApp/build/compose/binaries/main-release/msi/*.msi
 
           - os: ubuntu-latest
-            name: linux
+            name: linux-x64
             task: packageReleaseAppImage
-            artifact: linux-appimage
+            artifact: linux-appimage-x64
             path: ./PadConnectReceiver-x86_64.AppImage
+
+          - os: ubuntu-24.04-arm
+            name: linux-arm64
+            task: packageReleaseAppImage
+            artifact: linux-appimage-arm64
+            path: ./PadConnectReceiver-aarch64.AppImage
 
     runs-on: ${{ matrix.os }}
 
@@ -58,11 +64,22 @@ jobs:
           EOF
           
           cp "$APP_DIR/lib/PadConnectReceiver.png" "$APP_DIR/padconnectreceiver.png" || touch "$APP_DIR/padconnectreceiver.png"
-          wget -q https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
+
+          ARCH=$(uname -m)
+
+          if [ "$ARCH" = "aarch64" ]; then
+            TOOL="appimagetool-aarch64.AppImage"
+            OUTPUT="PadConnectReceiver-aarch64.AppImage"
+          else
+            TOOL="appimagetool-x86_64.AppImage"
+            OUTPUT="PadConnectReceiver-x86_64.AppImage"
+          fi
+          
+          wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/$TOOL"
+          chmod +x "$TOOL"
           export APPIMAGE_EXTRACT_AND_RUN=1
           
-          ./appimagetool-x86_64.AppImage "$APP_DIR" PadConnectReceiver-x86_64.AppImage
+          ./"$TOOL" "$APP_DIR" "$OUTPUT"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
