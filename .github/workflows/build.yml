@@ -42,10 +42,19 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup JDK
+        if: matrix.name != 'windows-arm64'
         uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 22 
+
+      - name: Setup JDK (windows-arm64)
+        if: matrix.name == 'windows-arm64'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'liberica'
+          java-version: '22'
+          architecture: arm64
 
       - name: Set up gradle caches
         uses: actions/cache@v5
