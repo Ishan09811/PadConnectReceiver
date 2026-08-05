@@ -41,6 +41,16 @@ jobs:
           distribution: temurin
           java-version: 22 
 
+      - name: Set up gradle caches
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-padconnectreceiver-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-padconnectreceiver-
+
       - name: Build
         run: |
           chmod +x gradlew
